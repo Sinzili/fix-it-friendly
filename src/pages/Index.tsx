@@ -1,6 +1,12 @@
 import { Card } from "@/components/ui/card";
 import { Layout } from "@/components/Layout";
 import { BarChart, Calendar, Users } from "lucide-react";
+import { collection, query, orderBy, limit } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useQuery } from "@tanstack/react-query";
+import { getDocs } from "firebase/firestore";
+import type { ServiceCall } from "@/services/firebase";
+import { format } from "date-fns";
 
 const stats = [
   {
@@ -27,6 +33,22 @@ const stats = [
 ];
 
 const Index = () => {
+  const { data: recentCalls, isLoading } = useQuery({
+    queryKey: ['recentServiceCalls'],
+    queryFn: async () => {
+      const q = query(
+        collection(db, "serviceCalls"), 
+        orderBy("createdAt", "desc"), 
+        limit(3)
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as (ServiceCall & { id: string })[];
+    }
+  });
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -63,20 +85,25 @@ const Index = () => {
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Recent Projects</h3>
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center justify-between border-b pb-4 last:border-0">
-                  <div>
-                    <p className="font-medium">Project {i}</p>
-                    <p className="text-sm text-gray-500">Client Name {i}</p>
+            <h3 className="text-lg font-semibold mb-4">Recent Service Calls</h3>
+            {isLoading ? (
+              <p>Loading service calls...</p>
+            ) : (
+              <div className="space-y-4">
+                {recentCalls?.map((call) => (
+                  <div key={call.id} className="flex items-center justify-between border-b pb-4 last:border-0">
+                    <div>
+                      <p className="font-medium">{call.customerName}</p>
+                      <p className="text-sm text-gray-500">Technician: {call.technicianName}</p>
+                      <p className="text-sm text-gray-500">Date: {format(new Date(call.date), 'PPP')}</p>
+                    </div>
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                      {call.status}
+                    </span>
                   </div>
-                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                    In Progress
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </Card>
 
           <Card className="p-6">

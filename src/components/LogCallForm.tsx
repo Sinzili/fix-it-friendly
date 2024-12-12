@@ -9,6 +9,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, MapPin, Phone, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { addServiceCall } from "@/services/firebase";
+import { useToast } from "@/components/ui/use-toast";
 
 const technicians = [
   { id: "1", name: "John Doe", specialty: "HVAC" },
@@ -17,13 +19,68 @@ const technicians = [
 ];
 
 export function LogCallForm() {
+  const { toast } = useToast();
   const [date, setDate] = useState<Date>(new Date());
   const [selectedTech, setSelectedTech] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    customerName: "",
+    phoneNumber: "",
+    address: "",
+    problem: "",
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted");
-    // Here you would typically handle the form submission
+    setIsSubmitting(true);
+    
+    try {
+      const selectedTechnician = technicians.find(tech => tech.id === selectedTech);
+      if (!selectedTechnician) {
+        throw new Error("Please select a technician");
+      }
+
+      await addServiceCall({
+        customerName: formData.customerName,
+        phoneNumber: formData.phoneNumber,
+        address: formData.address,
+        date,
+        technicianId: selectedTechnician.id,
+        technicianName: selectedTechnician.name,
+        problem: formData.problem,
+        status: 'pending'
+      });
+
+      toast({
+        title: "Success",
+        description: "Service call has been logged successfully",
+      });
+
+      // Reset form
+      setFormData({
+        customerName: "",
+        phoneNumber: "",
+        address: "",
+        problem: "",
+      });
+      setSelectedTech("");
+      setDate(new Date());
+
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast({
+        title: "Error",
+        description: "Failed to log service call. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -35,7 +92,14 @@ export function LogCallForm() {
             <label className="text-sm font-medium">Customer Name</label>
             <div className="relative">
               <User className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-              <Input className="pl-9" placeholder="Enter customer name" />
+              <Input 
+                className="pl-9" 
+                placeholder="Enter customer name"
+                name="customerName"
+                value={formData.customerName}
+                onChange={handleChange}
+                required
+              />
             </div>
           </div>
 
@@ -43,7 +107,15 @@ export function LogCallForm() {
             <label className="text-sm font-medium">Phone Number</label>
             <div className="relative">
               <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-              <Input className="pl-9" type="tel" placeholder="Enter phone number" />
+              <Input 
+                className="pl-9" 
+                type="tel" 
+                placeholder="Enter phone number"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                required
+              />
             </div>
           </div>
 
@@ -51,7 +123,14 @@ export function LogCallForm() {
             <label className="text-sm font-medium">Address</label>
             <div className="relative">
               <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-              <Input className="pl-9" placeholder="Enter address" />
+              <Input 
+                className="pl-9" 
+                placeholder="Enter address"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                required
+              />
             </div>
           </div>
 
@@ -83,7 +162,7 @@ export function LogCallForm() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Assign Technician</label>
-            <Select value={selectedTech} onValueChange={setSelectedTech}>
+            <Select value={selectedTech} onValueChange={setSelectedTech} required>
               <SelectTrigger>
                 <SelectValue placeholder="Select a technician" />
               </SelectTrigger>
@@ -103,11 +182,15 @@ export function LogCallForm() {
           <Textarea
             placeholder="Describe the problem that needs to be solved"
             className="min-h-[100px]"
+            name="problem"
+            value={formData.problem}
+            onChange={handleChange}
+            required
           />
         </div>
 
-        <Button type="submit" className="w-full">
-          Log Service Call
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "Logging Service Call..." : "Log Service Call"}
         </Button>
       </form>
     </Card>
