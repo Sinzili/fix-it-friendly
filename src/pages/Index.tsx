@@ -1,10 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Layout } from "@/components/Layout";
 import { BarChart, Calendar, Users } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { useQuery } from "@tanstack/react-query";
-import type { ServiceCall } from "@/services/supabase";
-import { format } from "date-fns";
 
 const stats = [
   {
@@ -31,20 +27,6 @@ const stats = [
 ];
 
 const Index = () => {
-  const { data: recentCalls, isLoading } = useQuery({
-    queryKey: ['recentServiceCalls'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('service_calls')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(3);
-
-      if (error) throw error;
-      return data as ServiceCall[];
-    }
-  });
-
   return (
     <Layout>
       <div className="space-y-6">
@@ -81,25 +63,20 @@ const Index = () => {
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Recent Service Calls</h3>
-            {isLoading ? (
-              <p>Loading service calls...</p>
-            ) : (
-              <div className="space-y-4">
-                {recentCalls?.map((call) => (
-                  <div key={call.id} className="flex items-center justify-between border-b pb-4 last:border-0">
-                    <div>
-                      <p className="font-medium">{call.customer_name}</p>
-                      <p className="text-sm text-gray-500">Technician: {call.technician_name}</p>
-                      <p className="text-sm text-gray-500">Date: {format(new Date(call.date), 'PPP')}</p>
-                    </div>
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                      {call.status}
-                    </span>
+            <h3 className="text-lg font-semibold mb-4">Recent Projects</h3>
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center justify-between border-b pb-4 last:border-0">
+                  <div>
+                    <p className="font-medium">Project {i}</p>
+                    <p className="text-sm text-gray-500">Client Name {i}</p>
                   </div>
-                ))}
-              </div>
-            )}
+                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                    In Progress
+                  </span>
+                </div>
+              ))}
+            </div>
           </Card>
 
           <Card className="p-6">
