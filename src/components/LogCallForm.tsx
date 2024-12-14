@@ -9,6 +9,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, MapPin, Phone, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/components/ui/use-toast";
 
 const technicians = [
   { id: "1", name: "John Doe", specialty: "HVAC" },
@@ -19,11 +21,62 @@ const technicians = [
 export function LogCallForm() {
   const [date, setDate] = useState<Date>(new Date());
   const [selectedTech, setSelectedTech] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [address, setAddress] = useState("");
+  const [description, setDescription] = useState("");
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted");
-    // Here you would typically handle the form submission
+    console.log("Submitting form data to Supabase");
+
+    try {
+      const { data, error } = await supabase
+        .from('service_calls')
+        .insert([
+          {
+            customer_name: customerName,
+            phone_number: phoneNumber,
+            address: address,
+            scheduled_date: date.toISOString(),
+            technician_id: selectedTech,
+            description: description,
+            status: 'pending'
+          }
+        ]);
+
+      if (error) {
+        console.error('Error submitting service call:', error);
+        toast({
+          title: "Error",
+          description: "Failed to log service call. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Service call logged successfully:', data);
+      toast({
+        title: "Success",
+        description: "Service call has been logged successfully.",
+      });
+
+      // Reset form
+      setCustomerName("");
+      setPhoneNumber("");
+      setAddress("");
+      setDate(new Date());
+      setSelectedTech("");
+      setDescription("");
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -35,7 +88,12 @@ export function LogCallForm() {
             <label className="text-sm font-medium">Customer Name</label>
             <div className="relative">
               <User className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-              <Input className="pl-9" placeholder="Enter customer name" />
+              <Input 
+                className="pl-9" 
+                placeholder="Enter customer name" 
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+              />
             </div>
           </div>
 
@@ -43,7 +101,13 @@ export function LogCallForm() {
             <label className="text-sm font-medium">Phone Number</label>
             <div className="relative">
               <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-              <Input className="pl-9" type="tel" placeholder="Enter phone number" />
+              <Input 
+                className="pl-9" 
+                type="tel" 
+                placeholder="Enter phone number" 
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+              />
             </div>
           </div>
 
@@ -51,7 +115,12 @@ export function LogCallForm() {
             <label className="text-sm font-medium">Address</label>
             <div className="relative">
               <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-              <Input className="pl-9" placeholder="Enter address" />
+              <Input 
+                className="pl-9" 
+                placeholder="Enter address" 
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
             </div>
           </div>
 
@@ -103,6 +172,8 @@ export function LogCallForm() {
           <Textarea
             placeholder="Describe the problem that needs to be solved"
             className="min-h-[100px]"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
           />
         </div>
 
