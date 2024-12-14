@@ -1,6 +1,7 @@
 import { Layout } from "@/components/Layout";
 import { Card } from "@/components/ui/card";
 import { Bell, Lock, User, Building } from "lucide-react";
+import { LogCallForm } from "@/components/LogCallForm";
 
 const settingsCategories = [
   {
@@ -33,6 +34,8 @@ const Settings = () => {
           <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-gray-500 mt-2">Manage your account and application preferences</p>
         </div>
+
+        <LogCallForm />
 
         <div className="grid gap-6 md:grid-cols-2">
           {settingsCategories.map((category) => (
