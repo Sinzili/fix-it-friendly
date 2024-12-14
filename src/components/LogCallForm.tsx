@@ -9,8 +9,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, MapPin, Phone, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { addServiceCall } from "@/services/firebase";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
+import type { ServiceCall } from "@/services/supabase";
 
 const technicians = [
   { id: "1", name: "John Doe", specialty: "HVAC" },
@@ -45,16 +46,21 @@ export function LogCallForm() {
         throw new Error("Please select a technician");
       }
 
-      await addServiceCall({
-        customerName: formData.customerName,
-        phoneNumber: formData.phoneNumber,
-        address: formData.address,
-        date,
-        technicianId: selectedTechnician.id,
-        technicianName: selectedTechnician.name,
-        problem: formData.problem,
-        status: 'pending'
-      });
+      const { error } = await supabase
+        .from('service_calls')
+        .insert([{
+          customer_name: formData.customerName,
+          phone_number: formData.phoneNumber,
+          address: formData.address,
+          date: date.toISOString(),
+          technician_id: selectedTechnician.id,
+          technician_name: selectedTechnician.name,
+          problem: formData.problem,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        }]);
+
+      if (error) throw error;
 
       toast({
         title: "Success",
