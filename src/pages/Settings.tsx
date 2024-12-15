@@ -2,6 +2,7 @@ import { Layout } from "@/components/Layout";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddTechnicianForm } from "@/components/AddTechnicianForm";
+import { AddCustomerForm } from "@/components/AddCustomerForm";
 
 const Settings = () => {
   return (
@@ -15,12 +16,17 @@ const Settings = () => {
         <Tabs defaultValue="technicians" className="space-y-4">
           <TabsList>
             <TabsTrigger value="technicians">Technicians</TabsTrigger>
+            <TabsTrigger value="customers">Customers</TabsTrigger>
             <TabsTrigger value="company">Company</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
           </TabsList>
 
           <TabsContent value="technicians" className="space-y-4">
             <AddTechnicianForm />
+          </TabsContent>
+
+          <TabsContent value="customers" className="space-y-4">
+            <AddCustomerForm />
           </TabsContent>
 
           <TabsContent value="company">
