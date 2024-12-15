@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddTechnicianForm } from "@/components/AddTechnicianForm";
 import { AddCustomerForm } from "@/components/AddCustomerForm";
+import { LogCallForm } from "@/components/LogCallForm";
 
 const Settings = () => {
   return (
@@ -17,6 +18,7 @@ const Settings = () => {
           <TabsList>
             <TabsTrigger value="technicians">Technicians</TabsTrigger>
             <TabsTrigger value="customers">Customers</TabsTrigger>
+            <TabsTrigger value="service-calls">Service Calls</TabsTrigger>
             <TabsTrigger value="company">Company</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
           </TabsList>
@@ -27,6 +29,10 @@ const Settings = () => {
 
           <TabsContent value="customers" className="space-y-4">
             <AddCustomerForm />
+          </TabsContent>
+
+          <TabsContent value="service-calls" className="space-y-4">
+            <LogCallForm />
           </TabsContent>
 
           <TabsContent value="company">

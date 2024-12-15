@@ -42,6 +42,42 @@ export type Database = {
         }
         Relationships: []
       }
+      service_calls: {
+        Row: {
+          address: string | null
+          created_at: string
+          customer_name: string
+          description: string | null
+          id: string
+          phone_number: string | null
+          scheduled_date: string
+          status: string | null
+          technician_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          customer_name: string
+          description?: string | null
+          id?: string
+          phone_number?: string | null
+          scheduled_date: string
+          status?: string | null
+          technician_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          customer_name?: string
+          description?: string | null
+          id?: string
+          phone_number?: string | null
+          scheduled_date?: string
+          status?: string | null
+          technician_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
