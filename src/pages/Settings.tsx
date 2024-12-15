@@ -1,30 +1,7 @@
 import { Layout } from "@/components/Layout";
 import { Card } from "@/components/ui/card";
-import { Bell, Lock, User, Building } from "lucide-react";
-import { LogCallForm } from "@/components/LogCallForm";
-
-const settingsCategories = [
-  {
-    title: "Profile Settings",
-    icon: User,
-    description: "Update your personal information and preferences",
-  },
-  {
-    title: "Security",
-    icon: Lock,
-    description: "Manage your password and security settings",
-  },
-  {
-    title: "Notifications",
-    icon: Bell,
-    description: "Configure your notification preferences",
-  },
-  {
-    title: "Company Details",
-    icon: Building,
-    description: "Update your company information",
-  },
-];
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AddTechnicianForm } from "@/components/AddTechnicianForm";
 
 const Settings = () => {
   return (
@@ -32,29 +9,34 @@ const Settings = () => {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-gray-500 mt-2">Manage your account and application preferences</p>
+          <p className="text-gray-500 mt-2">Manage your application settings</p>
         </div>
 
-        <LogCallForm />
+        <Tabs defaultValue="technicians" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="technicians">Technicians</TabsTrigger>
+            <TabsTrigger value="company">Company</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          </TabsList>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {settingsCategories.map((category) => (
-            <Card 
-              key={category.title} 
-              className="p-6 cursor-pointer hover:shadow-lg transition-shadow"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center">
-                  <category.icon className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">{category.title}</h3>
-                  <p className="text-sm text-gray-500">{category.description}</p>
-                </div>
-              </div>
+          <TabsContent value="technicians" className="space-y-4">
+            <AddTechnicianForm />
+          </TabsContent>
+
+          <TabsContent value="company">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Company Settings</h3>
+              <p className="text-gray-500">Company settings coming soon...</p>
             </Card>
-          ))}
-        </div>
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Notification Preferences</h3>
+              <p className="text-gray-500">Notification settings coming soon...</p>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );
