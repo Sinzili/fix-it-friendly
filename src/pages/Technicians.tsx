@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
+import { ServiceCallDetails } from "@/components/ServiceCallDetails";
 
 interface Technician {
   id: string;
@@ -29,6 +30,7 @@ interface ServiceCall {
 
 const Technicians = () => {
   const [selectedTechnician, setSelectedTechnician] = useState<Technician | null>(null);
+  const [selectedServiceCall, setSelectedServiceCall] = useState<string | null>(null);
 
   const { data: technicians, isLoading } = useQuery({
     queryKey: ['technicians'],
@@ -47,7 +49,11 @@ const Technicians = () => {
       if (!selectedTechnician) return null;
       const { data, error } = await supabase
         .from('service_calls')
-        .select('*')
+        .select(`
+          *,
+          service_call_details(*),
+          service_call_photos(*)
+        `)
         .eq('technician_id', selectedTechnician.id);
       if (error) throw error;
       return data;
@@ -60,7 +66,7 @@ const Technicians = () => {
   };
 
   const ServiceCallCard = ({ call }: { call: ServiceCall }) => (
-    <Card className="p-4 mb-4">
+    <Card className="p-4 mb-4 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setSelectedServiceCall(call.id)}>
       <div className="space-y-2">
         <div className="flex justify-between">
           <h4 className="font-semibold">{call.customer_name}</h4>
@@ -167,6 +173,20 @@ const Technicians = () => {
                 </TabsContent>
               </ScrollArea>
             </Tabs>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={!!selectedServiceCall} onOpenChange={() => setSelectedServiceCall(null)}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Service Call Details</DialogTitle>
+            </DialogHeader>
+            {selectedServiceCall && (
+              <ServiceCallDetails
+                serviceCallId={selectedServiceCall}
+                onClose={() => setSelectedServiceCall(null)}
+              />
+            )}
           </DialogContent>
         </Dialog>
       </div>

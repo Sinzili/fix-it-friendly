@@ -42,6 +42,76 @@ export type Database = {
         }
         Relationships: []
       }
+      service_call_details: {
+        Row: {
+          completion_notes: string | null
+          created_at: string
+          customer_rating: number | null
+          customer_signature: string | null
+          id: string
+          parts_used: string[] | null
+          progress_notes: string | null
+          service_call_id: string
+        }
+        Insert: {
+          completion_notes?: string | null
+          created_at?: string
+          customer_rating?: number | null
+          customer_signature?: string | null
+          id?: string
+          parts_used?: string[] | null
+          progress_notes?: string | null
+          service_call_id: string
+        }
+        Update: {
+          completion_notes?: string | null
+          created_at?: string
+          customer_rating?: number | null
+          customer_signature?: string | null
+          id?: string
+          parts_used?: string[] | null
+          progress_notes?: string | null
+          service_call_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_call_details_service_call_id_fkey"
+            columns: ["service_call_id"]
+            isOneToOne: false
+            referencedRelation: "service_calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_call_photos: {
+        Row: {
+          created_at: string
+          id: string
+          photo_url: string
+          service_call_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          photo_url: string
+          service_call_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          photo_url?: string
+          service_call_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_call_photos_service_call_id_fkey"
+            columns: ["service_call_id"]
+            isOneToOne: false
+            referencedRelation: "service_calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_calls: {
         Row: {
           address: string | null
