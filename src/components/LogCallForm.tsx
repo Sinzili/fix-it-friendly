@@ -11,21 +11,67 @@ import { Calendar as CalendarIcon, MapPin, Phone, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
-
-const technicians = [
-  { id: "1", name: "John Doe", specialty: "HVAC" },
-  { id: "2", name: "Jane Smith", specialty: "Electrical" },
-  { id: "3", name: "Mike Johnson", specialty: "Plumbing" },
-];
+import { useQuery } from "@tanstack/react-query";
 
 export function LogCallForm() {
   const [date, setDate] = useState<Date>(new Date());
   const [selectedTech, setSelectedTech] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
   const { toast } = useToast();
+
+  // Fetch technicians
+  const { data: technicians = [] } = useQuery({
+    queryKey: ['technicians'],
+    queryFn: async () => {
+      console.log('Fetching technicians from Supabase');
+      const { data, error } = await supabase
+        .from('technicians')
+        .select('id, name, specialty')
+        .eq('status', 'active');
+      
+      if (error) {
+        console.error('Error fetching technicians:', error);
+        throw error;
+      }
+      
+      console.log('Fetched technicians:', data);
+      return data;
+    }
+  });
+
+  // Fetch customers
+  const { data: customers = [] } = useQuery({
+    queryKey: ['customers'],
+    queryFn: async () => {
+      console.log('Fetching customers from Supabase');
+      const { data, error } = await supabase
+        .from('customers')
+        .select('id, name, phone, address');
+      
+      if (error) {
+        console.error('Error fetching customers:', error);
+        throw error;
+      }
+      
+      console.log('Fetched customers:', data);
+      return data;
+    }
+  });
+
+  // Handle customer selection
+  const handleCustomerSelect = (customerId: string) => {
+    const customer = customers.find(c => c.id === customerId);
+    if (customer) {
+      setSelectedCustomer(customerId);
+      setCustomerName(customer.name);
+      setPhoneNumber(customer.phone || '');
+      setAddress(customer.address || '');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +114,7 @@ export function LogCallForm() {
       setAddress("");
       setDate(new Date());
       setSelectedTech("");
+      setSelectedCustomer("");
       setDescription("");
     } catch (error) {
       console.error('Error:', error);
@@ -84,6 +131,22 @@ export function LogCallForm() {
       <h3 className="text-lg font-semibold mb-4">Log New Service Call</h3>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Select Customer</label>
+            <Select value={selectedCustomer} onValueChange={handleCustomerSelect}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a customer" />
+              </SelectTrigger>
+              <SelectContent>
+                {customers.map((customer) => (
+                  <SelectItem key={customer.id} value={customer.id}>
+                    {customer.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium">Customer Name</label>
             <div className="relative">
