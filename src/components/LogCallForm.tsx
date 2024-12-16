@@ -11,7 +11,7 @@ import { Calendar as CalendarIcon, MapPin, Phone, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function LogCallForm() {
   const [date, setDate] = useState<Date>(new Date());
@@ -22,6 +22,7 @@ export function LogCallForm() {
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch technicians
   const { data: technicians = [] } = useQuery({
@@ -103,6 +104,10 @@ export function LogCallForm() {
       }
 
       console.log('Service call logged successfully:', data);
+      
+      // Invalidate the appointments query to trigger a refresh
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      
       toast({
         title: "Success",
         description: "Service call has been logged successfully.",
