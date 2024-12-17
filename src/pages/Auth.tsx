@@ -115,11 +115,6 @@ const AuthPage = () => {
             },
           }}
           providers={[]}
-          onAuthStateChange={(event) => {
-            if (event.error) {
-              handleError(event.error);
-            }
-          }}
         />
       </Card>
     </div>
