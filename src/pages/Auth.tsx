@@ -19,28 +19,36 @@ const AuthPage = () => {
     } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session);
       
-      if (event === 'SIGNED_IN') {
-        console.log("User signed in successfully");
-        navigate("/");
-      } else if (event === 'SIGNED_OUT') {
-        console.log("User signed out");
-        toast({
-          title: "Signed out",
-          description: "You have been signed out successfully.",
-        });
-      } else if (event === 'USER_UPDATED') {
-        console.log("User updated");
-      } else if (event === 'PASSWORD_RECOVERY') {
-        console.log("Password recovery initiated");
-        toast({
-          title: "Password recovery email sent",
-          description: "Please check your email to reset your password.",
-        });
-      } else if (event === 'TOKEN_REFRESHED') {
-        console.log("Token refreshed");
-      } else if (event === 'ERROR') {
-        console.error("Auth error occurred:", session);
-        setError("An authentication error occurred. Please try again.");
+      switch (event) {
+        case 'SIGNED_IN':
+          console.log("User signed in successfully");
+          navigate("/");
+          break;
+        case 'SIGNED_OUT':
+          console.log("User signed out");
+          toast({
+            title: "Signed out",
+            description: "You have been signed out successfully.",
+          });
+          break;
+        case 'USER_UPDATED':
+          console.log("User updated");
+          break;
+        case 'PASSWORD_RECOVERY':
+          console.log("Password recovery initiated");
+          toast({
+            title: "Password recovery email sent",
+            description: "Please check your email to reset your password.",
+          });
+          break;
+        case 'TOKEN_REFRESHED':
+          console.log("Token refreshed");
+          break;
+        default:
+          if (!session) {
+            console.error("Auth error occurred:", event);
+            setError("An authentication error occurred. Please try again.");
+          }
       }
     });
 
@@ -61,6 +69,16 @@ const AuthPage = () => {
       subscription.unsubscribe();
     };
   }, [navigate, toast]);
+
+  const handleError = (error: Error) => {
+    console.error("Auth error:", error);
+    setError(error.message);
+    toast({
+      variant: "destructive",
+      title: "Authentication Error",
+      description: error.message,
+    });
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -97,14 +115,10 @@ const AuthPage = () => {
             },
           }}
           providers={[]}
-          onError={(error) => {
-            console.error("Auth error:", error);
-            setError(error.message);
-            toast({
-              variant: "destructive",
-              title: "Authentication Error",
-              description: error.message,
-            });
+          onAuthStateChange={(event) => {
+            if (event.error) {
+              handleError(event.error);
+            }
           }}
         />
       </Card>
