@@ -1,4 +1,4 @@
-import { Calendar, LayoutDashboard, Users, FileText, Settings } from "lucide-react";
+import { Calendar, LayoutDashboard, Users, FileText, Settings, LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,7 +9,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const menuItems = [
   {
@@ -40,6 +42,27 @@ const menuItems = [
 ];
 
 export function AppSidebar() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account.",
+      });
+      navigate("/auth");
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast({
+        title: "Error logging out",
+        description: "There was a problem logging out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -60,6 +83,12 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleLogout} className="flex items-center gap-3 w-full text-red-600 hover:text-red-700">
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
