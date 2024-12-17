@@ -28,7 +28,11 @@ export function CreateCompanyForm() {
       // Create company
       const { data: company, error: companyError } = await supabase
         .from('companies')
-        .insert([{ name }])
+        .insert([{ 
+          name,
+          is_approved: false,
+          pending_approval: true
+        }])
         .select()
         .single();
 
@@ -54,7 +58,7 @@ export function CreateCompanyForm() {
 
       toast({
         title: "Success",
-        description: "Company has been created successfully.",
+        description: "Company has been created and is pending approval.",
       });
 
       // Reset form
