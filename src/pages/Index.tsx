@@ -4,24 +4,36 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  const { data: userCompany, isLoading } = useQuery({
+  const { data: userCompany, isLoading, error } = useQuery({
     queryKey: ['userCompany'],
     queryFn: async () => {
+      console.log("Fetching user company data");
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
+      if (!user) {
+        console.log("No user found");
+        return null;
+      }
 
+      console.log("User found, fetching company data", user.id);
       const { data, error } = await supabase
         .from('company_users')
-        .select('companies (*)')
+        .select(`
+          company:companies (
+            id,
+            name,
+            created_at
+          )
+        `)
         .eq('user_id', user.id)
         .single();
 
       if (error) {
         console.error('Error fetching company:', error);
-        return null;
+        throw error;
       }
 
-      return data?.companies;
+      console.log("Company data fetched:", data);
+      return data?.company;
     },
   });
 
@@ -29,6 +41,15 @@ const Index = () => {
     return (
       <Layout>
         <div>Loading...</div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    console.error('Error:', error);
+    return (
+      <Layout>
+        <div>Error loading company data. Please try again.</div>
       </Layout>
     );
   }
