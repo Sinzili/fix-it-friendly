@@ -19,8 +19,8 @@ const AuthPage = () => {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
       
-      if (session) {
-        console.log("User session found, redirecting to home");
+      if (event === 'SIGNED_IN' && session) {
+        console.log("User signed in successfully, redirecting to home");
         navigate("/");
         return;
       }
