@@ -8,14 +8,20 @@ const Index = () => {
     queryKey: ['userCompany'],
     queryFn: async () => {
       console.log("Fetching user company data");
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('Error fetching user:', userError);
+        throw userError;
+      }
+      
       if (!user) {
         console.log("No user found");
         return null;
       }
 
       console.log("User found, fetching company data", user.id);
-      const { data, error } = await supabase
+      const { data, error: companyError } = await supabase
         .from('company_users')
         .select(`
           company:companies (
@@ -25,22 +31,29 @@ const Index = () => {
           )
         `)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle(); // Using maybeSingle instead of single to avoid error when no company exists
 
-      if (error) {
-        console.error('Error fetching company:', error);
-        throw error;
+      if (companyError) {
+        console.error('Error fetching company:', companyError);
+        throw companyError;
       }
 
       console.log("Company data fetched:", data);
-      return data?.company;
+      return data?.company || null;
     },
+    retry: 1,
+    retryDelay: 1000,
   });
 
   if (isLoading) {
     return (
       <Layout>
-        <div>Loading...</div>
+        <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <div>Loading...</div>
+          </div>
+        </div>
       </Layout>
     );
   }
@@ -49,7 +62,12 @@ const Index = () => {
     console.error('Error:', error);
     return (
       <Layout>
-        <div>Error loading company data. Please try again.</div>
+        <div className="flex items-center justify-center h-[calc(100vh-8rem)]">
+          <div className="text-center text-red-600">
+            <p className="mb-4">Failed to load company data.</p>
+            <p className="text-sm text-gray-600">Please refresh the page to try again.</p>
+          </div>
+        </div>
       </Layout>
     );
   }
