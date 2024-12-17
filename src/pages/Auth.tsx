@@ -16,14 +16,16 @@ const AuthPage = () => {
     console.log("Setting up auth state change listener");
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session);
       
+      if (session) {
+        console.log("User session found, redirecting to home");
+        navigate("/");
+        return;
+      }
+
       switch (event) {
-        case 'SIGNED_IN':
-          console.log("User signed in successfully");
-          navigate("/");
-          break;
         case 'SIGNED_OUT':
           console.log("User signed out");
           toast({
@@ -44,11 +46,6 @@ const AuthPage = () => {
         case 'TOKEN_REFRESHED':
           console.log("Token refreshed");
           break;
-        default:
-          if (!session) {
-            console.error("Auth error occurred:", event);
-            setError("An authentication error occurred. Please try again.");
-          }
       }
     });
 
@@ -69,16 +66,6 @@ const AuthPage = () => {
       subscription.unsubscribe();
     };
   }, [navigate, toast]);
-
-  const handleError = (error: Error) => {
-    console.error("Auth error:", error);
-    setError(error.message);
-    toast({
-      variant: "destructive",
-      title: "Authentication Error",
-      description: error.message,
-    });
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
