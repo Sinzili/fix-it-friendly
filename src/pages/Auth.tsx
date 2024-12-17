@@ -12,23 +12,20 @@ const AuthPage = () => {
 
   useEffect(() => {
     // Check if user is already logged in
-    supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session);
       if (session) {
         navigate("/");
       }
-    });
 
-    // Listen for auth errors
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "USER_DELETED") {
+      if (event === 'SIGNED_OUT') {
         toast({
-          title: "Account deleted",
-          description: "Your account has been successfully deleted.",
+          title: "Signed out",
+          description: "You have been signed out successfully.",
         });
-      } else if (event === "PASSWORD_RECOVERY") {
+      } else if (event === 'PASSWORD_RECOVERY') {
         toast({
           title: "Password recovery email sent",
           description: "Please check your email to reset your password.",
@@ -67,14 +64,6 @@ const AuthPage = () => {
             },
           }}
           providers={[]}
-          onError={(error) => {
-            console.error("Auth error:", error);
-            toast({
-              title: "Authentication Error",
-              description: error.message,
-              variant: "destructive",
-            });
-          }}
         />
       </Card>
     </div>
