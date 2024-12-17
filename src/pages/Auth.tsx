@@ -46,6 +46,11 @@ const AuthPage = () => {
         case 'TOKEN_REFRESHED':
           console.log("Token refreshed");
           break;
+        default:
+          if (event === 'SIGNED_IN' && !session) {
+            console.error("Sign in failed:", event);
+            setError("Sign in failed. Please check your credentials and try again.");
+          }
       }
     });
 
@@ -66,6 +71,17 @@ const AuthPage = () => {
       subscription.unsubscribe();
     };
   }, [navigate, toast]);
+
+  const handleError = (error: Error) => {
+    console.error("Auth error:", error);
+    const errorMessage = error.message || "An authentication error occurred. Please try again.";
+    setError(errorMessage);
+    toast({
+      variant: "destructive",
+      title: "Authentication Error",
+      description: errorMessage,
+    });
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -102,6 +118,7 @@ const AuthPage = () => {
             },
           }}
           providers={[]}
+          onError={handleError}
         />
       </Card>
     </div>
