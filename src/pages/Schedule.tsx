@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ServiceCallDetails } from "@/components/ServiceCallDetails";
 
@@ -13,7 +13,7 @@ const Schedule = () => {
   const [selectedServiceCall, setSelectedServiceCall] = useState<string | null>(null);
 
   const { data: appointments = [] } = useQuery({
-    queryKey: ['appointments'],  // Using the same query key as LogCallForm for auto-sync
+    queryKey: ['appointments'],
     queryFn: async () => {
       console.log('Fetching service calls for Schedule page');
       const { data, error } = await supabase
@@ -35,6 +35,11 @@ const Schedule = () => {
       return data;
     },
   });
+
+  // Filter appointments for selected date
+  const selectedDateAppointments = appointments.filter(
+    (appointment) => date && isSameDay(new Date(appointment.scheduled_date), date)
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -67,26 +72,32 @@ const Schedule = () => {
           </Card>
 
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Upcoming Appointments</h3>
+            <h3 className="text-lg font-semibold mb-4">
+              {date ? format(date, "MMMM d, yyyy") : "Select a date"} Appointments
+            </h3>
             <div className="space-y-4">
-              {appointments.map((appointment) => (
-                <div 
-                  key={appointment.id} 
-                  className="flex items-center justify-between border-b pb-4 last:border-0 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
-                  onClick={() => setSelectedServiceCall(appointment.id)}
-                >
-                  <div>
-                    <p className="font-medium">{appointment.customer_name}</p>
-                    <p className="text-sm text-gray-500">
-                      {format(new Date(appointment.scheduled_date), 'MMM dd, yyyy HH:mm')}
-                    </p>
-                    <p className="text-sm text-gray-500">{appointment.address}</p>
+              {selectedDateAppointments.length === 0 ? (
+                <p className="text-gray-500">No appointments scheduled for this date.</p>
+              ) : (
+                selectedDateAppointments.map((appointment) => (
+                  <div 
+                    key={appointment.id} 
+                    className="flex items-center justify-between border-b pb-4 last:border-0 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                    onClick={() => setSelectedServiceCall(appointment.id)}
+                  >
+                    <div>
+                      <p className="font-medium">{appointment.customer_name}</p>
+                      <p className="text-sm text-gray-500">
+                        {format(new Date(appointment.scheduled_date), 'HH:mm')}
+                      </p>
+                      <p className="text-sm text-gray-500">{appointment.address}</p>
+                    </div>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(appointment.status)}`}>
+                      {appointment.status}
+                    </span>
                   </div>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(appointment.status)}`}>
-                    {appointment.status}
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </Card>
         </div>
