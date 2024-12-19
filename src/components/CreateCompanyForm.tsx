@@ -29,22 +29,22 @@ export function CreateCompanyForm() {
 
     try {
       // Get current user
-      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
       
       if (userError) {
         console.error('User error:', userError);
         throw new Error(userError.message);
       }
       
-      if (!userData.user) {
+      if (!user) {
         console.error('No user found');
         throw new Error("No user found");
       }
 
-      console.log("Creating company for user:", userData.user.id);
+      console.log("Creating company for user:", user.id);
 
       // Create company
-      const { data: company, error: companyError } = await supabase
+      const { data: companyData, error: companyError } = await supabase
         .from('companies')
         .insert([{ 
           name: name.trim(),
@@ -52,25 +52,25 @@ export function CreateCompanyForm() {
           pending_approval: true
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (companyError) {
         console.error('Company creation error:', companyError);
         throw new Error(companyError.message);
       }
 
-      if (!company) {
+      if (!companyData) {
         throw new Error("Failed to create company");
       }
 
-      console.log("Company created:", company);
+      console.log("Company created:", companyData);
 
       // Link user to company
       const { error: linkError } = await supabase
         .from('company_users')
         .insert([{
-          user_id: userData.user.id,
-          company_id: company.id,
+          user_id: user.id,
+          company_id: companyData.id,
           role: 'admin'
         }]);
 
@@ -80,7 +80,7 @@ export function CreateCompanyForm() {
         await supabase
           .from('companies')
           .delete()
-          .eq('id', company.id);
+          .eq('id', companyData.id);
         throw new Error(linkError.message);
       }
 
