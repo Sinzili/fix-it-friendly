@@ -15,39 +15,52 @@ export function CreateCompanyForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name.trim()) {
+      toast({
+        title: "Error",
+        description: "Company name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     console.log("Creating company with name:", name);
 
     try {
       // Get current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const { data: userData, error: userError } = await supabase.auth.getUser();
       
       if (userError) {
         console.error('User error:', userError);
-        throw new Error("Failed to get current user");
+        throw new Error(userError.message);
       }
       
-      if (!user) {
+      if (!userData.user) {
         console.error('No user found');
         throw new Error("No user found");
       }
 
-      console.log("Creating company for user:", user.id);
+      console.log("Creating company for user:", userData.user.id);
 
       // Create company
       const { data: company, error: companyError } = await supabase
         .from('companies')
         .insert([{ 
-          name,
+          name: name.trim(),
           is_approved: false,
           pending_approval: true
         }])
-        .select('*')
+        .select()
         .single();
 
       if (companyError) {
         console.error('Company creation error:', companyError);
-        throw companyError;
+        throw new Error(companyError.message);
+      }
+
+      if (!company) {
+        throw new Error("Failed to create company");
       }
 
       console.log("Company created:", company);
@@ -56,14 +69,19 @@ export function CreateCompanyForm() {
       const { error: linkError } = await supabase
         .from('company_users')
         .insert([{
-          user_id: user.id,
+          user_id: userData.user.id,
           company_id: company.id,
           role: 'admin'
         }]);
 
       if (linkError) {
         console.error('Link error:', linkError);
-        throw linkError;
+        // Cleanup the created company if linking fails
+        await supabase
+          .from('companies')
+          .delete()
+          .eq('id', company.id);
+        throw new Error(linkError.message);
       }
 
       console.log("User linked to company successfully");
@@ -83,7 +101,7 @@ export function CreateCompanyForm() {
       console.error('Error creating company:', error);
       toast({
         title: "Error",
-        description: "Failed to create company. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to create company. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -114,7 +132,7 @@ export function CreateCompanyForm() {
         <Button 
           type="submit" 
           className="w-full bg-primary hover:bg-primary/90" 
-          disabled={isLoading}
+          disabled={isLoading || !name.trim()}
         >
           {isLoading ? "Creating..." : "Create Company"}
         </Button>
