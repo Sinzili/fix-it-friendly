@@ -9,9 +9,66 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      companies: {
+        Row: {
+          created_at: string
+          id: string
+          is_approved: boolean | null
+          name: string
+          pending_approval: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_approved?: boolean | null
+          name: string
+          pending_approval?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_approved?: boolean | null
+          name?: string
+          pending_approval?: boolean | null
+        }
+        Relationships: []
+      }
+      company_users: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          id: string
+          role: string
+          user_id: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_users_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null
+          company_id: string | null
           created_at: string
           customer_number: number
           id: string
@@ -22,6 +79,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          company_id?: string | null
           created_at?: string
           customer_number?: number
           id?: string
@@ -32,6 +90,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          company_id?: string | null
           created_at?: string
           customer_number?: number
           id?: string
@@ -40,7 +99,15 @@ export type Database = {
           name?: string
           phone?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_call_details: {
         Row: {
@@ -115,6 +182,7 @@ export type Database = {
       service_calls: {
         Row: {
           address: string | null
+          company_id: string | null
           created_at: string
           customer_name: string
           description: string | null
@@ -126,6 +194,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          company_id?: string | null
           created_at?: string
           customer_name: string
           description?: string | null
@@ -137,6 +206,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          company_id?: string | null
           created_at?: string
           customer_name?: string
           description?: string | null
@@ -146,10 +216,19 @@ export type Database = {
           status?: string | null
           technician_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "service_calls_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       technicians: {
         Row: {
+          company_id: string | null
           created_at: string
           email: string
           id: string
@@ -159,6 +238,7 @@ export type Database = {
           status: string | null
         }
         Insert: {
+          company_id?: string | null
           created_at?: string
           email: string
           id?: string
@@ -168,6 +248,7 @@ export type Database = {
           status?: string | null
         }
         Update: {
+          company_id?: string | null
           created_at?: string
           email?: string
           id?: string
@@ -176,7 +257,15 @@ export type Database = {
           specialty?: string
           status?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "technicians_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
