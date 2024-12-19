@@ -13,7 +13,7 @@ const Schedule = () => {
   const [selectedServiceCall, setSelectedServiceCall] = useState<string | null>(null);
 
   const { data: appointments = [] } = useQuery({
-    queryKey: ['appointments'],  // Using the same query key as LogCallForm for auto-sync
+    queryKey: ['appointments'],  // Using the same query key as LogCallForm
     queryFn: async () => {
       console.log('Fetching service calls for Schedule page');
       const { data, error } = await supabase
