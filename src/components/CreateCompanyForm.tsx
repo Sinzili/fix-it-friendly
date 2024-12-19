@@ -42,17 +42,12 @@ export function CreateCompanyForm() {
           is_approved: false,
           pending_approval: true
         }])
-        .select()
+        .select('*')
         .single();
 
       if (companyError) {
         console.error('Company creation error:', companyError);
         throw companyError;
-      }
-
-      if (!company) {
-        console.error('No company data returned');
-        throw new Error("Failed to create company");
       }
 
       console.log("Company created:", company);
@@ -73,8 +68,9 @@ export function CreateCompanyForm() {
 
       console.log("User linked to company successfully");
 
-      // Invalidate the userCompany query to trigger a refetch
+      // Invalidate queries to refresh data
       await queryClient.invalidateQueries({ queryKey: ['userCompany'] });
+      await queryClient.invalidateQueries({ queryKey: ['userRole'] });
 
       toast({
         title: "Success",
@@ -87,7 +83,7 @@ export function CreateCompanyForm() {
       console.error('Error creating company:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create company. Please try again.",
+        description: "Failed to create company. Please try again.",
         variant: "destructive",
       });
     } finally {
