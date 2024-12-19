@@ -13,9 +13,9 @@ const Schedule = () => {
   const [selectedServiceCall, setSelectedServiceCall] = useState<string | null>(null);
 
   const { data: appointments = [] } = useQuery({
-    queryKey: ['appointments'],  // Using the same query key as LogCallForm
+    queryKey: ['appointments'],
     queryFn: async () => {
-      console.log('Fetching service calls for Schedule page');
+      console.log('Fetching service calls');
       const { data, error } = await supabase
         .from('service_calls')
         .select(`
@@ -24,14 +24,15 @@ const Schedule = () => {
           service_call_photos(*)
         `)
         .gte('scheduled_date', new Date().toISOString())
-        .order('scheduled_date', { ascending: true });
+        .order('scheduled_date', { ascending: true })
+        .limit(10);
 
       if (error) {
         console.error('Error fetching appointments:', error);
         throw error;
       }
 
-      console.log('Fetched appointments for Schedule page:', data);
+      console.log('Fetched appointments:', data);
       return data;
     },
   });
