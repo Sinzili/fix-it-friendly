@@ -7,8 +7,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import SignatureCanvas from 'react-signature-canvas';
 import { StarIcon } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface ServiceCallDetailsProps {
   serviceCallId: string;
@@ -22,9 +20,7 @@ export function ServiceCallDetails({ serviceCallId, onClose }: ServiceCallDetail
   const [customerRating, setCustomerRating] = useState(0);
   const [photos, setPhotos] = useState<File[]>([]);
   const [signaturePad, setSignaturePad] = useState<SignatureCanvas | null>(null);
-  const [status, setStatus] = useState<string>("pending");
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -87,16 +83,6 @@ export function ServiceCallDetails({ serviceCallId, onClose }: ServiceCallDetail
         signatureUrl = signatureData;
       }
 
-      // Update service call status
-      const { error: statusError } = await supabase
-        .from('service_calls')
-        .update({ status })
-        .eq('id', serviceCallId);
-
-      if (statusError) {
-        throw statusError;
-      }
-
       // Save service call details
       const { error: detailsError } = await supabase
         .from('service_call_details')
@@ -113,13 +99,20 @@ export function ServiceCallDetails({ serviceCallId, onClose }: ServiceCallDetail
         throw detailsError;
       }
 
+      // Update service call status to completed
+      const { error: updateError } = await supabase
+        .from('service_calls')
+        .update({ status: 'completed' })
+        .eq('id', serviceCallId);
+
+      if (updateError) {
+        throw updateError;
+      }
+
       toast({
         title: "Success",
         description: "Service call details have been saved successfully.",
       });
-
-      // Invalidate queries to refresh the data
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
 
       onClose();
     } catch (error) {
@@ -136,20 +129,6 @@ export function ServiceCallDetails({ serviceCallId, onClose }: ServiceCallDetail
     <Card className="w-full max-w-2xl mx-auto">
       <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Status</label>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="space-y-2">
             <label className="text-sm font-medium">Progress Notes</label>
             <Textarea
