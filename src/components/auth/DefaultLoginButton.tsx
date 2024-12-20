@@ -9,23 +9,7 @@ export const DefaultLoginButton = () => {
     try {
       console.log("Starting authentication process...");
       
-      // First try to sign up
-      try {
-        console.log("Attempting to sign up...");
-        await signUpWithEmail(
-          'eaglevision.dev30@gmail.com',
-          'Eaglevision@today2020'
-        );
-        console.log("Sign up successful or user already exists");
-      } catch (signUpError: any) {
-        console.log("Sign up result:", signUpError);
-        // Ignore user already registered error as we'll try to sign in anyway
-        if (!signUpError.message.includes("User already registered")) {
-          console.error("Sign up error:", signUpError);
-        }
-      }
-      
-      // Then try to sign in
+      // First try to sign in
       try {
         console.log("Attempting to sign in...");
         await signInWithEmail(
@@ -38,16 +22,49 @@ export const DefaultLoginButton = () => {
           description: "Successfully logged in",
         });
       } catch (signInError: any) {
-        console.error("Sign in error:", signInError);
-        toast({
-          title: "Error",
-          description: "Failed to sign in. Please check your credentials.",
-          variant: "destructive",
-        });
-        throw signInError;
+        console.error("Sign in failed, attempting signup...");
+        
+        // If sign in fails, try to sign up
+        try {
+          await signUpWithEmail(
+            'eaglevision.dev30@gmail.com',
+            'Eaglevision@today2020'
+          );
+          console.log("Sign up successful, attempting sign in...");
+          
+          // After successful signup, try to sign in again
+          await signInWithEmail(
+            'eaglevision.dev30@gmail.com',
+            'Eaglevision@today2020'
+          );
+          toast({
+            title: "Success",
+            description: "Account created and logged in successfully",
+          });
+        } catch (signUpError: any) {
+          console.error("Sign up error:", signUpError);
+          if (signUpError.message.includes("User already registered")) {
+            toast({
+              title: "Error",
+              description: "Invalid credentials. Please check your email and password.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Error",
+              description: "Failed to create account. Please try again.",
+              variant: "destructive",
+            });
+          }
+        }
       }
     } catch (error) {
       console.error("Authentication error:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
