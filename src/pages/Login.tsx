@@ -19,23 +19,37 @@ const Login = () => {
         const setupUser = async () => {
           try {
             // First, check if user already has a company_users entry
-            const { data: existingUser } = await supabase
+            const { data: existingUser, error: checkError } = await supabase
               .from('company_users')
               .select('*')
               .eq('user_id', session.user.id)
               .single();
 
+            if (checkError) {
+              console.error("Error checking existing user:", checkError);
+            }
+
             if (!existingUser) {
               console.log("Creating new company_users entry");
-              // If no entry exists, create one
-              const { data: companies } = await supabase
+              // If no entry exists, get the first active company
+              const { data: companies, error: companyError } = await supabase
                 .from('companies')
                 .select('id')
                 .eq('status', 'active')
                 .single();
 
+              if (companyError) {
+                console.error("Error fetching company:", companyError);
+                toast({
+                  title: "Error",
+                  description: "No active company found. Please contact support.",
+                  variant: "destructive",
+                });
+                return;
+              }
+
               if (companies) {
-                const { error } = await supabase
+                const { error: insertError } = await supabase
                   .from('company_users')
                   .insert([
                     {
@@ -45,8 +59,8 @@ const Login = () => {
                     }
                   ]);
 
-                if (error) {
-                  console.error("Error creating company_users entry:", error);
+                if (insertError) {
+                  console.error("Error creating company_users entry:", insertError);
                   toast({
                     title: "Error",
                     description: "Failed to setup user account. Please contact support.",
@@ -79,7 +93,7 @@ const Login = () => {
       <Card className="w-full max-w-md p-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-center text-primary mb-2">Eagle Vision</h1>
-          <p className="text-gray-500 text-center">Sign in to your account</p>
+          <p className="text-gray-500 text-center">Sign in to your account or create a new one</p>
         </div>
         <Auth
           supabaseClient={supabase}
@@ -101,6 +115,14 @@ const Login = () => {
           }}
           providers={[]}
           redirectTo={window.location.origin}
+          onError={(error) => {
+            console.error("Auth error:", error);
+            toast({
+              title: "Authentication Error",
+              description: error.message,
+              variant: "destructive",
+            });
+          }}
         />
       </Card>
     </div>
