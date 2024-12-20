@@ -92,39 +92,35 @@ const Login = () => {
 
   const handleDefaultLogin = async () => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      // First try to sign up
+      console.log("Attempting to sign up...");
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: 'eaglevision.dev30@gmail.com',
         password: 'Eaglevision@today2020'
       });
 
-      if (error) {
-        console.error("Login error:", error);
-        if (error.message.includes("Invalid login credentials")) {
-          // If login fails, try to sign up
-          const { error: signUpError } = await supabase.auth.signUp({
-            email: 'eaglevision.dev30@gmail.com',
-            password: 'Eaglevision@today2020'
-          });
+      if (signUpError) {
+        console.log("Sign up failed, attempting to sign in...", signUpError);
+        // If sign up fails (likely because user exists), try to sign in
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: 'eaglevision.dev30@gmail.com',
+          password: 'Eaglevision@today2020'
+        });
 
-          if (signUpError) {
-            toast({
-              title: "Error",
-              description: "Failed to create default account. " + signUpError.message,
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Success",
-              description: "Default account created. Please check your email for verification.",
-            });
-          }
-        } else {
+        if (signInError) {
+          console.error("Sign in error:", signInError);
           toast({
             title: "Error",
-            description: error.message,
+            description: signInError.message,
             variant: "destructive",
           });
         }
+      } else {
+        console.log("Sign up successful:", signUpData);
+        toast({
+          title: "Success",
+          description: "Account created successfully. Please check your email for verification.",
+        });
       }
     } catch (error) {
       console.error("Error in handleDefaultLogin:", error);
