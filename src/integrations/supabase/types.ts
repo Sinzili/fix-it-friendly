@@ -11,25 +11,40 @@ export type Database = {
     Tables: {
       companies: {
         Row: {
+          address: string | null
           created_at: string
           id: string
           is_approved: boolean | null
           name: string
+          owner_email: string | null
+          owner_name: string | null
           pending_approval: boolean | null
+          phone: string | null
+          status: string | null
         }
         Insert: {
+          address?: string | null
           created_at?: string
           id?: string
           is_approved?: boolean | null
           name: string
+          owner_email?: string | null
+          owner_name?: string | null
           pending_approval?: boolean | null
+          phone?: string | null
+          status?: string | null
         }
         Update: {
+          address?: string | null
           created_at?: string
           id?: string
           is_approved?: boolean | null
           name?: string
+          owner_email?: string | null
+          owner_name?: string | null
           pending_approval?: boolean | null
+          phone?: string | null
+          status?: string | null
         }
         Relationships: []
       }
@@ -38,21 +53,21 @@ export type Database = {
           company_id: string | null
           created_at: string
           id: string
-          role: string
+          role: Database["public"]["Enums"]["user_role"]
           user_id: string | null
         }
         Insert: {
           company_id?: string | null
           created_at?: string
           id?: string
-          role?: string
+          role?: Database["public"]["Enums"]["user_role"]
           user_id?: string | null
         }
         Update: {
           company_id?: string | null
           created_at?: string
           id?: string
-          role?: string
+          role?: Database["public"]["Enums"]["user_role"]
           user_id?: string | null
         }
         Relationships: [
@@ -181,38 +196,56 @@ export type Database = {
       }
       service_calls: {
         Row: {
+          accepted_at: string | null
+          actual_duration: unknown | null
           address: string | null
           company_id: string | null
+          completed_at: string | null
           created_at: string
           customer_name: string
           description: string | null
+          estimated_duration: unknown | null
           id: string
+          job_card_number: string | null
           phone_number: string | null
           scheduled_date: string
+          started_at: string | null
           status: string | null
           technician_id: string
         }
         Insert: {
+          accepted_at?: string | null
+          actual_duration?: unknown | null
           address?: string | null
           company_id?: string | null
+          completed_at?: string | null
           created_at?: string
           customer_name: string
           description?: string | null
+          estimated_duration?: unknown | null
           id?: string
+          job_card_number?: string | null
           phone_number?: string | null
           scheduled_date: string
+          started_at?: string | null
           status?: string | null
           technician_id: string
         }
         Update: {
+          accepted_at?: string | null
+          actual_duration?: unknown | null
           address?: string | null
           company_id?: string | null
+          completed_at?: string | null
           created_at?: string
           customer_name?: string
           description?: string | null
+          estimated_duration?: unknown | null
           id?: string
+          job_card_number?: string | null
           phone_number?: string | null
           scheduled_date?: string
+          started_at?: string | null
           status?: string | null
           technician_id?: string
         }
@@ -228,32 +261,41 @@ export type Database = {
       }
       technicians: {
         Row: {
+          approval_status: string | null
+          availability_status: string | null
           company_id: string | null
           created_at: string
           email: string
           id: string
           name: string
           phone: string | null
+          skills: string[] | null
           specialty: string
           status: string | null
         }
         Insert: {
+          approval_status?: string | null
+          availability_status?: string | null
           company_id?: string | null
           created_at?: string
           email: string
           id?: string
           name: string
           phone?: string | null
+          skills?: string[] | null
           specialty: string
           status?: string | null
         }
         Update: {
+          approval_status?: string | null
+          availability_status?: string | null
           company_id?: string | null
           created_at?: string
           email?: string
           id?: string
           name?: string
           phone?: string | null
+          skills?: string[] | null
           specialty?: string
           status?: string | null
         }
@@ -275,7 +317,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "super_admin" | "admin" | "technician" | "customer"
     }
     CompositeTypes: {
       [_ in never]: never
