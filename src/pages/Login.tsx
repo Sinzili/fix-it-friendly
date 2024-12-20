@@ -92,37 +92,50 @@ const Login = () => {
 
   const handleDefaultLogin = async () => {
     try {
-      // Try to sign in first
-      console.log("Attempting to sign in...");
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      // First try to sign up
+      console.log("Attempting to sign up...");
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: 'eaglevision.dev30@gmail.com',
-        password: 'Eaglevision@today2020'
+        password: 'Eaglevision@today2020',
+        options: {
+          emailRedirectTo: window.location.origin
+        }
       });
 
-      if (signInError) {
-        console.log("Sign in failed, attempting to sign up...", signInError);
-        // If sign in fails, try to sign up
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      if (signUpError) {
+        console.log("Sign up failed, attempting to sign in...", signUpError);
+        // If sign up fails (likely because user exists), try to sign in
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: 'eaglevision.dev30@gmail.com',
           password: 'Eaglevision@today2020'
         });
 
-        if (signUpError) {
-          console.error("Sign up error:", signUpError);
+        if (signInError) {
+          console.error("Sign in error:", signInError);
           toast({
             title: "Error",
-            description: signUpError.message,
+            description: signInError.message,
             variant: "destructive",
           });
         } else {
-          console.log("Sign up successful:", signUpData);
-          toast({
-            title: "Success",
-            description: "Account created successfully. Please check your email for verification.",
-          });
+          console.log("Sign in successful:", signInData);
         }
       } else {
-        console.log("Sign in successful:", signInData);
+        console.log("Sign up successful:", signUpData);
+        // After successful signup, try to sign in immediately
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: 'eaglevision.dev30@gmail.com',
+          password: 'Eaglevision@today2020'
+        });
+
+        if (signInError) {
+          toast({
+            title: "Notice",
+            description: "Account created. Please check your email for verification.",
+          });
+        } else {
+          console.log("Auto sign-in after signup successful:", signInData);
+        }
       }
     } catch (error) {
       console.error("Error in handleDefaultLogin:", error);
