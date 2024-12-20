@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 
 const Login = () => {
@@ -92,35 +92,37 @@ const Login = () => {
 
   const handleDefaultLogin = async () => {
     try {
-      // First try to sign up
-      console.log("Attempting to sign up...");
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      // Try to sign in first
+      console.log("Attempting to sign in...");
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: 'eaglevision.dev30@gmail.com',
         password: 'Eaglevision@today2020'
       });
 
-      if (signUpError) {
-        console.log("Sign up failed, attempting to sign in...", signUpError);
-        // If sign up fails (likely because user exists), try to sign in
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+      if (signInError) {
+        console.log("Sign in failed, attempting to sign up...", signInError);
+        // If sign in fails, try to sign up
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: 'eaglevision.dev30@gmail.com',
           password: 'Eaglevision@today2020'
         });
 
-        if (signInError) {
-          console.error("Sign in error:", signInError);
+        if (signUpError) {
+          console.error("Sign up error:", signUpError);
           toast({
             title: "Error",
-            description: signInError.message,
+            description: signUpError.message,
             variant: "destructive",
+          });
+        } else {
+          console.log("Sign up successful:", signUpData);
+          toast({
+            title: "Success",
+            description: "Account created successfully. Please check your email for verification.",
           });
         }
       } else {
-        console.log("Sign up successful:", signUpData);
-        toast({
-          title: "Success",
-          description: "Account created successfully. Please check your email for verification.",
-        });
+        console.log("Sign in successful:", signInData);
       }
     } catch (error) {
       console.error("Error in handleDefaultLogin:", error);
