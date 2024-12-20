@@ -4,148 +4,21 @@ import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { DefaultLoginButton } from "@/components/auth/DefaultLoginButton";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [showDefaultLogin, setShowDefaultLogin] = useState(false);
 
   useEffect(() => {
-    // Check if user is already logged in
     supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session);
       if (session) {
-        // If user is logged in, create a company_users entry
-        const setupUser = async () => {
-          try {
-            // First, check if user already has a company_users entry
-            const { data: existingUser, error: checkError } = await supabase
-              .from('company_users')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .single();
-
-            if (checkError) {
-              console.error("Error checking existing user:", checkError);
-            }
-
-            if (!existingUser) {
-              console.log("Creating new company_users entry");
-              // If no entry exists, get the first active company
-              const { data: companies, error: companyError } = await supabase
-                .from('companies')
-                .select('id')
-                .eq('status', 'active')
-                .single();
-
-              if (companyError) {
-                console.error("Error fetching company:", companyError);
-                toast({
-                  title: "Error",
-                  description: "No active company found. Please contact support.",
-                  variant: "destructive",
-                });
-                return;
-              }
-
-              if (companies) {
-                const { error: insertError } = await supabase
-                  .from('company_users')
-                  .insert([
-                    {
-                      user_id: session.user.id,
-                      company_id: companies.id,
-                      role: 'technician'
-                    }
-                  ]);
-
-                if (insertError) {
-                  console.error("Error creating company_users entry:", insertError);
-                  toast({
-                    title: "Error",
-                    description: "Failed to setup user account. Please contact support.",
-                    variant: "destructive",
-                  });
-                  return;
-                }
-              }
-            }
-
-            // Navigate to dashboard after setup
-            navigate("/");
-          } catch (error) {
-            console.error("Error in setupUser:", error);
-            toast({
-              title: "Error",
-              description: "Failed to setup user account. Please contact support.",
-              variant: "destructive",
-            });
-          }
-        };
-
-        setupUser();
+        navigate("/");
       }
     });
-  }, [navigate, toast]);
-
-  const handleDefaultLogin = async () => {
-    try {
-      // First try to sign up
-      console.log("Attempting to sign up...");
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: 'eaglevision.dev30@gmail.com',
-        password: 'Eaglevision@today2020',
-        options: {
-          emailRedirectTo: window.location.origin
-        }
-      });
-
-      if (signUpError) {
-        console.log("Sign up failed, attempting to sign in...", signUpError);
-        // If sign up fails (likely because user exists), try to sign in
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: 'eaglevision.dev30@gmail.com',
-          password: 'Eaglevision@today2020'
-        });
-
-        if (signInError) {
-          console.error("Sign in error:", signInError);
-          toast({
-            title: "Error",
-            description: signInError.message,
-            variant: "destructive",
-          });
-        } else {
-          console.log("Sign in successful:", signInData);
-        }
-      } else {
-        console.log("Sign up successful:", signUpData);
-        // After successful signup, try to sign in immediately
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: 'eaglevision.dev30@gmail.com',
-          password: 'Eaglevision@today2020'
-        });
-
-        if (signInError) {
-          toast({
-            title: "Notice",
-            description: "Account created. Please check your email for verification.",
-          });
-        } else {
-          console.log("Auto sign-in after signup successful:", signInData);
-        }
-      }
-    } catch (error) {
-      console.error("Error in handleDefaultLogin:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
-      });
-    }
-  };
+  }, [navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -154,6 +27,7 @@ const Login = () => {
           <h1 className="text-2xl font-bold text-center text-primary mb-2">Eagle Vision</h1>
           <p className="text-gray-500 text-center">Sign in to your account or create a new one</p>
         </div>
+        
         {!showDefaultLogin ? (
           <div className="space-y-4">
             <Button 
@@ -172,14 +46,11 @@ const Login = () => {
             </div>
           </div>
         ) : null}
+        
         {showDefaultLogin ? (
-          <Button 
-            className="w-full mb-4" 
-            onClick={handleDefaultLogin}
-          >
-            Login with Default Credentials
-          </Button>
+          <DefaultLoginButton />
         ) : null}
+        
         <Auth
           supabaseClient={supabase}
           appearance={{
