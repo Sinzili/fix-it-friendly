@@ -43,19 +43,11 @@ export const DefaultLoginButton = () => {
           });
         } catch (signUpError: any) {
           console.error("Sign up error:", signUpError);
-          if (signUpError.message.includes("User already registered")) {
-            toast({
-              title: "Error",
-              description: "Invalid credentials. Please check your email and password.",
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Error",
-              description: "Failed to create account. Please try again.",
-              variant: "destructive",
-            });
-          }
+          toast({
+            title: "Error",
+            description: "Failed to create account. Please try again.",
+            variant: "destructive",
+          });
         }
       }
     } catch (error) {
