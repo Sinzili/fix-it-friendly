@@ -7,49 +7,47 @@ export const DefaultLoginButton = () => {
   
   const handleDefaultLogin = async () => {
     try {
-      // Try sign in first
+      console.log("Starting authentication process...");
+      
+      // First try to sign up
       try {
+        console.log("Attempting to sign up...");
+        await signUpWithEmail(
+          'eaglevision.dev30@gmail.com',
+          'Eaglevision@today2020'
+        );
+        console.log("Sign up successful or user already exists");
+      } catch (signUpError: any) {
+        console.log("Sign up result:", signUpError);
+        // Ignore user already registered error as we'll try to sign in anyway
+        if (!signUpError.message.includes("User already registered")) {
+          console.error("Sign up error:", signUpError);
+        }
+      }
+      
+      // Then try to sign in
+      try {
+        console.log("Attempting to sign in...");
         await signInWithEmail(
           'eaglevision.dev30@gmail.com',
           'Eaglevision@today2020'
         );
-      } catch (signInError) {
-        console.log("Sign in failed, attempting signup...");
-        
-        // If sign in fails, try to sign up
-        try {
-          await signUpWithEmail(
-            'eaglevision.dev30@gmail.com',
-            'Eaglevision@today2020'
-          );
-          
-          // After successful signup, try to sign in
-          await signInWithEmail(
-            'eaglevision.dev30@gmail.com',
-            'Eaglevision@today2020'
-          );
-        } catch (signUpError: any) {
-          if (signUpError.message.includes("User already registered")) {
-            toast({
-              title: "Error",
-              description: "Please check your credentials and try again.",
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "Notice",
-              description: "Account created. Please check your email for verification.",
-            });
-          }
-        }
+        console.log("Sign in successful");
+        toast({
+          title: "Success",
+          description: "Successfully logged in",
+        });
+      } catch (signInError: any) {
+        console.error("Sign in error:", signInError);
+        toast({
+          title: "Error",
+          description: "Failed to sign in. Please check your credentials.",
+          variant: "destructive",
+        });
+        throw signInError;
       }
     } catch (error) {
-      console.error("Error in handleDefaultLogin:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
-      });
+      console.error("Authentication error:", error);
     }
   };
 

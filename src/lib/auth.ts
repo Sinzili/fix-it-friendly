@@ -22,7 +22,10 @@ export const signUpWithEmail = async (email: string, password: string) => {
     email,
     password,
     options: {
-      emailRedirectTo: window.location.origin,
+      emailRedirectTo: `${window.location.origin}/login`,
+      data: {
+        email: email,
+      }
     },
   });
   
